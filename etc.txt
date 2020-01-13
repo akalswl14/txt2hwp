@@ -1,0 +1,45 @@
+// 파일 읽기
+        if (hwpFile.getBodyText().getSectionList().size() > 0) {
+            System.out.println(filepath + "  읽기 성공 !!");
+            String text = hwpFile.getBodyText().getSectionList().get(0).getParagraph(0).getText().getNormalString(0);
+            System.out.println(text);
+        }
+//문단 추가
+: 새로운 문단 추가는 단순히 addNew	Paragraph로 해결되지않는다. Inserting_Table.java의 setParagraphForCell참고함.
+
+// 줄간격 조정
+lineSeg에서 줄간격을 조정할 수 있는데 왜인지 줄간격(LineSpace)로는 조정이 되지 않았다.
+삽질중 paragraph의 header의 ParaShapeId를 이전것의 id를 가져와서 set했더니 이전과 같은 줄간격을 가졌다.
+
+private static void setParaHeader(Paragraph firstParagraph, int ParaShapeId) {
+		ParaHeader ph = firstParagraph.getHeader();
+		ph.setLastInList(true);
+		
+		// ph.setParaShapeId(10); <- 처음에 문단 만들기를 개발할때는 이런 값을 지정해줬었고 파라미터 값을 변화시켰을때
+		// 0이면 전체 들여쓰기, 1이면 1. 2이면 가. 9이면 첫줄뺴고 들여쓰기.10이면 전체 들여쓰기 없음. 였기 때문에 문단 모양 수준이라고 생각했는데
+		// 좀더 조사가 필요할 것 같다.  
+		// 결론 적으로 10 -> 이전문단의ShapeId를 가져오는 것으로 바꿨더니 줄간격이 늘어났다.
+		ph.setParaShapeId(ParaShapeId);
+		
+		ph.setStyleId((short) 0);
+		ph.getDivideSort().setDivideSection(false);
+        ph.getDivideSort().setDivideMultiColumn(false);
+        ph.getDivideSort().setDividePage(false);
+        ph.getDivideSort().setDivideColumn(false);
+        ph.setCharShapeCount(1);
+        ph.setRangeTagCount(0);
+        ph.setLineAlignCount(1);
+        ph.setInstanceID(0);
+        ph.setIsMergedByTrack(0);		
+}
+:paraheader는 bodytext-(section)-paragraph-header-paraheader에서 볼 수 있다.
+
+//원래 줄 간격을 조정하는 곳
+	Section ss = hwpFile.getBodyText().getSectionList().get(0);
+	Paragraph fp = ss.getParagraph(1);
+	ParaLineSeg pls = fp.getLineSeg();
+	LineSegItem lsi = pls.getLineSegItemList().get(0);
+	int lsize = lsi.getLineSpace();
+: bodytext-(section)-paragraph-paraLineSeg에서 줄에 관한 Shape를 볼 수 있다.
+
+//특수문자 ○ 는 볼드체 적용안됨.
